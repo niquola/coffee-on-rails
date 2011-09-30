@@ -1,0 +1,62 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN"
+"http://www.w3.org/TR/html4/loose.dtd">
+<html>
+  <head>
+    <title>App</title>
+    <script type="text/javascript" src="lib/inflection.js"></script>
+    <script type="text/javascript" src="lib/jquery.min.js"></script>
+    <script type="text/javascript" src="lib/underscore-min.js"></script>
+    <script type="text/javascript" src="lib/jade.min.js"></script>
+    <script type="text/javascript" src="lib/coffee-script.js"></script>
+    <!-- include spec files here... -->
+    <script type="text/coffeescript" src="app.coffee"></script>
+    <style>
+      html {
+        background:#333;
+        color:white;
+      }
+      body {
+        margin:1em auto;
+        width:900px;
+      }
+      a {
+        color:SandyBrown;
+      }
+    </style>
+  </head>
+  <body>
+<template name="Notes/show">
+!= link_to('Back',{action:'index'})
+h1= note.title
+pre=  note.content
+</template>
+<template name="Notes/index">
+h1 Notes
+!= link_to('New',{action:'new'})
+&nbsp;
+!= link_to('Sort by Title',{sort:'title'})
+&nbsp;
+!= link_to('Sort by Id',{sort:'id'})
+ul
+  each note in notes
+    li
+      != link_to(note.title,{action:'show',id:note.id})
+</template>
+<template name="Notes/new">
+form.clientform(method='POST',action="Notes#create")
+  h1 Create Note
+  .formRow
+    label Title:
+    br
+    input(name='title')
+  .formRow
+    label Content:
+    br
+    textarea(name='content')
+  .formRow
+    != link_to('Cancel',{action:'index'})
+    &nbsp;
+    input(type='submit',value='Save') Save
+</template>
+  </body>
+</html>
