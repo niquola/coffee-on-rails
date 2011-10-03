@@ -7,9 +7,9 @@ jQuery.fn.serializeObject = () ->
   objectData = {}
   $.each @serializeArray(), () ->
     value = if @value?
-        @value
-      else
-        ''
+      @value
+    else
+      ''
     if objectData[@name]?
       objectData[@name] = [objectData[@name]] unless objectData[@name].push
       objectData[@name].push value
@@ -22,29 +22,38 @@ Object::to_json = ->
   JSON.stringify(this)
 
 Dispatcher =
-  init:->
+  init:(config)->
+    @config = config
     $('body').delegate '.clientform','submit', ()->
-      try
-        parts = $(this).attr('action').split('#')
-        p parts
-        params =
-          entity: $(this).serializeObject()
-        params.controller = parts[0]
-        params.action = parts[1] || 'index'
-        Dispatcher.dispatch(params)
-      catch e
-        p e
-      return false
-    $('body').delegate '.clientlink','click', ()->
-      params = $(this).attr('href').split('#')[1]
-      params = JSON.parse(params)
+      parts = $(this).attr('action').split('#')
+      params = $(this).attr('params')
+      if params?
+        params = JSON.parse(params)
+      else
+        params = {}
+      params.entity     = $(this).serializeObject()
+      params.controller = parts[0]
+      params.action     = parts[1] || 'index'
       Dispatcher.dispatch(params)
-   dispatch:(params)->
-      controller = params.controller
-      klazz = window["#{controller}Controller"]
-      cnt = new klazz
-      cnt.params = params
-      cnt.action(params.action || 'index')
+      false
+    window.addEventListener "hashchange", @handle_hash, false
+    @handle_hash()
+  handle_hash:=>
+    try
+      params = window.location.hash.split('#')[1]
+      if params?
+        params = JSON.parse(params)
+      else
+        params = config.routes.default
+      Dispatcher.dispatch(params)
+    catch e
+      p e
+  dispatch:(params)->
+    controller = params.controller
+    klazz = window["#{controller}Controller"]
+    cnt = new klazz
+    cnt.params = params
+    cnt.action(params.action || 'index')
 
 Renderer =
   templates:{}
@@ -52,6 +61,7 @@ Renderer =
     $('template').each ->
       Renderer.templates[$(this).attr('name')] = Jade.compile($(this).html())
       this.parentNode.removeChild(this)
+
 window.App =
   init:->
     Renderer.init()
@@ -60,6 +70,8 @@ window.App =
 class window.Model
   constructor:(attrs)->
     @attrs = attrs
+    @update_attributes(attrs)
+  update_attributes:(attrs)->
     this[attr] = val for attr,val of attrs
 
 class window.Collection
@@ -93,7 +105,7 @@ class window.Controller
     Dispatcher.dispatch(params)
 
   action:(action)->
-    @params['action'] = action
-    @params['controller'] = @controller_name()
+    @params.action = action
+    @params.controller = @controller_name()
     @[action]() if @[action]?
     $('body').html(Renderer.templates["#{@controller_name()}/#{action}"](this)) unless @_redirect

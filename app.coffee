@@ -16,11 +16,16 @@ class window.NotesController extends Controller
         note[@params.sort]
   show:->
     @note = Notes.find(@params.id)
+  update:->
+    @note = Notes.find(@params.id)
+    @note.update_attributes(@params.entity)
+    @redirect_to action:'show', id:@note.id
+  edit:->
+    @note = Notes.find(@params.id)
   create:->
     @note = Notes.create(@params.entity)
     @redirect_to action:'index'
 
-App.init()
-cnt = new NotesController()
-cnt.params= {filter:'myfilter'}
-cnt.action('index')
+App.init
+  routes:
+    default: {controller:'Notes',action:'index'}

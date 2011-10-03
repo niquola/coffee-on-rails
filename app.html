@@ -23,6 +23,10 @@
       a {
         color:SandyBrown;
       }
+      .newForm textarea{
+        height:20em;
+        width:50em;
+      }
     </style>
   </head>
   <body>
@@ -31,6 +35,7 @@
 != link_to('Back',{action:'index'})
 h1= note.title
 pre=  note.content
+!= link_to('Edit',{action:'edit',id:note.id})
 </template>
 
 <template name="Notes/index">
@@ -47,7 +52,7 @@ ul
 </template>
 
 <template name="Notes/new">
-form.clientform(method='POST',action="Notes#create")
+form.newForm.clientform(method='POST',action="Notes#create")
   h1 Create Note
   .formRow
     label Title:
@@ -57,6 +62,23 @@ form.clientform(method='POST',action="Notes#create")
     label Content:
     br
     textarea(name='content')
+  .formRow
+    != link_to('Cancel',{action:'index'})
+    &nbsp;
+    input(type='submit',value='Save') Save
+</template>
+
+<template name="Notes/edit">
+form.newForm.clientform(method='POST',action="Notes#update",params=JSON.stringify({id:note.id}))
+  h1 Create Note
+  .formRow
+    label Title:
+    br
+    input(name='title',value=note.title)
+  .formRow
+    label Content:
+    br
+    textarea(name='content')= note.content
   .formRow
     != link_to('Cancel',{action:'index'})
     &nbsp;
