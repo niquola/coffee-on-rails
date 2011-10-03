@@ -9,6 +9,7 @@
     <script type="text/javascript" src="lib/jade.min.js"></script>
     <script type="text/javascript" src="lib/coffee-script.js"></script>
     <!-- include spec files here... -->
+    <script type="text/coffeescript" src="jor.coffee"></script>
     <script type="text/coffeescript" src="app.coffee"></script>
     <style>
       html {
@@ -25,11 +26,13 @@
     </style>
   </head>
   <body>
+
 <template name="Notes/show">
 != link_to('Back',{action:'index'})
 h1= note.title
 pre=  note.content
 </template>
+
 <template name="Notes/index">
 h1 Notes
 != link_to('New',{action:'new'})
@@ -42,6 +45,7 @@ ul
     li
       != link_to(note.title,{action:'show',id:note.id})
 </template>
+
 <template name="Notes/new">
 form.clientform(method='POST',action="Notes#create")
   h1 Create Note
@@ -58,5 +62,6 @@ form.clientform(method='POST',action="Notes#create")
     &nbsp;
     input(type='submit',value='Save') Save
 </template>
+
   </body>
 </html>
