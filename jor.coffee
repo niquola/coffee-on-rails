@@ -36,15 +36,15 @@ Dispatcher =
       params.action     = parts[1] || 'index'
       Dispatcher.dispatch(params)
       false
-    window.addEventListener "hashchange", @handle_hash, false
-    @handle_hash()
-  handle_hash:=>
+    window.addEventListener "hashchange", @handle_hash.bind(this), false
+    @handle_hash(Dispatcher)
+  handle_hash:->
     try
       params = window.location.hash.split('#')[1]
       if params?
         params = JSON.parse(params)
       else
-        params = config.routes.default
+        params = @config.routes.default
       Dispatcher.dispatch(params)
     catch e
       p e
@@ -63,9 +63,9 @@ Renderer =
       this.parentNode.removeChild(this)
 
 window.App =
-  init:->
+  init:(config)->
     Renderer.init()
-    Dispatcher.init()
+    Dispatcher.init(config)
 
 class window.Model
   constructor:(attrs)->
@@ -77,10 +77,15 @@ class window.Model
 class window.Collection
   constructor:(attrs)->
     this[attr] = val for attr,val of attrs
-  items:[]
+  items:null
   model:Model
   all:->
-    @items
+    if @items?
+      deferred = $.Deferred()
+      deferred.resolve(@items)
+    else
+      $.getJSON(@url).pipe (data)=>
+        @items = data
   find:(id)->
     res = _.select @items, (item)->
       item.id == id
@@ -92,6 +97,7 @@ class window.Collection
 
 class window.Controller
   constructor:->
+  params:{}
   controller_name:->
     @controller ||= @constructor.name.replace(/Controller$/,'')
   link_to:(label,opts)->
@@ -108,4 +114,15 @@ class window.Controller
     @params.action = action
     @params.controller = @controller_name()
     @[action]() if @[action]?
-    $('body').html(Renderer.templates["#{@controller_name()}/#{action}"](this)) unless @_redirect
+    proto =  @.constructor.prototype
+    vars = []
+    self = this
+    for key,val of @
+      if ! proto[key]? &&  val && val.pipe
+        k = key
+        vars.push val.pipe (data)->
+          p k,data
+          self[k] = data
+    $.when(vars...).done =>
+      p self.notes
+      $('body').html(Renderer.templates["#{@controller_name()}/#{action}"](this)) unless @_redirect
