@@ -25,16 +25,19 @@ Dispatcher =
   init:(config)->
     @config = config
     $('body').delegate '.clientform','submit', ()->
-      parts = $(this).attr('action').split('#')
-      params = $(this).attr('params')
-      if params?
-        params = JSON.parse(params)
-      else
-        params = {}
-      params.entity     = $(this).serializeObject()
-      params.controller = parts[0]
-      params.action     = parts[1] || 'index'
-      Dispatcher.dispatch(params)
+      try
+        parts = $(this).attr('action').split('#')
+        params = $(this).attr('params')
+        if params?
+          params = JSON.parse(params)
+        else
+          params = {}
+        params.entity     = $(this).serializeObject()
+        params.controller = parts[0]
+        params.action     = parts[1] || 'index'
+        Dispatcher.dispatch(params)
+      catch e
+        p e
       false
     window.addEventListener "hashchange", @handle_hash.bind(this), false
     @handle_hash(Dispatcher)
@@ -85,9 +88,12 @@ class window.Collection
       deferred.resolve(@items)
     else
       $.getJSON(@url).pipe (data)=>
-        @items = data
+        @items = _(data).map (item)=>
+          new @model(item)
+
   find:(id)->
     res = _.select @items, (item)->
+      p item
       item.id == id
     res[0]
   cid:3
