@@ -2,3 +2,5 @@ h1. Just for fun
 
 ruby on rails simulation on client side
 using coffee,ajax and jade
+
+just clone and open app.html in browser :)
